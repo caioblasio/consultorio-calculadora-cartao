@@ -1,7 +1,28 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f5f5f5;
+      }
+      nav {
+        padding: 0 16px;
+      }
       .container {
         max-width: 960px;
         margin: 0 auto;
@@ -20,16 +41,32 @@
           taxaCredito = 0.0389,
           taxaPorParcela = 0.0199,
           form = document.getElementById("form");
-        selectModalidade = document.getElementById("modalidade");
-        selectParcelas = document.getElementById("parcelas");
-        inputValor = document.getElementById("valor");
+        var selectModalidade = document.getElementById("modalidade"),
+          selectParcelas = document.getElementById("parcelas"),
+          inputValor = document.getElementById("valor"),
+          sharingWhatsappButton = document.getElementById(
+            "sharing-to-whatsapp"
+          );
+
+        var resultado, _modalidade, _parcelas;
+
+        // Materialize.css
+        var selectElements = document.querySelectorAll("select");
+        var selectInstance = M.FormSelect.init(selectElements);
+        var modalElements = document.querySelectorAll(".modal");
+        var modalInstances = M.Modal.init(modalElements, {
+          onCloseEnd: function () {
+            window.location.reload();
+          },
+        });
+        var resultModal = M.Modal.getInstance(modalElements[0]);
 
         function calcular(e) {
           e.preventDefault();
           var valor = parseFloat(inputValor.value),
             modalidade = selectModalidade.value,
             parcelas = parseInt(selectParcelas.value);
-          var resultado;
+
           if (modalidade === "debito") {
             resultado = valor / (1 - taxaDebito.toFixed(2));
           } else {
@@ -42,68 +79,131 @@
             }
           }
           resultado = resultado.toFixed(2);
-          alert("Valor a ser cobrado do cliente: R$ " + resultado);
-          window.location.reload();
+          _modalidade = modalidade;
+          _parcelas = modalidade === "credito" ? parcelas : undefined;
+          document.getElementById("resultado").innerHTML = "R$ " + resultado;
+          resultModal.open();
         }
 
         function mostrarParcelas() {
           var wrapperParcelas = document.querySelector(".select-parcelas");
           if (selectModalidade.value === "credito") {
-            wrapperParcelas.style.display = "inline";
+            wrapperParcelas.style.display = "block";
           } else {
             wrapperParcelas.style.display = "none";
           }
         }
 
+        function redirectToShare() {
+          var nomeCliente = document.getElementById("cliente-nome").value;
+          var text =
+            "Pagamento realizado na modalidade " +
+            _modalidade +
+            " para o paciente " +
+            nomeCliente +
+            " pelo no valor de R$ " +
+            resultado;
+          document.location.href =
+            "https://wa.me/5511991999667?text=" + encodeURIComponent(text);
+        }
+
+        sharingWhatsappButton.addEventListener("click", redirectToShare);
         selectModalidade.addEventListener("change", mostrarParcelas);
         form.addEventListener("submit", calcular);
       });
     </script>
   </head>
   <body>
+    <nav class="blue-grey">
+      <div class="nav-wrapper">
+        <a href="#" class="brand-logo left">
+          <i class="material-icons">credit_card</i>Cartão</a
+        >
+      </div>
+    </nav>
     <div class="container">
-      <h1>Cálculo de Cobrança por Cartão</h1>
-      <form id="form">
-        <div class="wrapper input-valor">
-          <label for="valor">Valor:</label>
-          <input
-            id="valor"
-            type="number"
-            step="0.01"
-            min="0"
-            required
-            onkeypress="return (event.charCode >= 48 && event.charCode <= 57) ||  
+      <div class="row">
+        <form class="col s12" id="form">
+          <div class="row input-valor">
+            <div class="input-field col s12">
+              <input
+                id="valor"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                onkeypress="return (event.charCode >= 48 && event.charCode <= 57) ||  
         event.charCode == 44 || event.charCode == 0 "
-          />
+              />
+              <label for="valor">Valor (R$)</label>
+            </div>
+          </div>
+          <div class="row select-modalidade">
+            <div class="input-field col s12">
+              <select name="modalidade" id="modalidade">
+                <option value="debito">Débito</option>
+                <option value="credito">Crédito</option>
+              </select>
+              <label for="modalidade">Modalidade:</label>
+            </div>
+          </div>
+          <div class="row select-parcelas" style="display: none">
+            <div class="input-field col s12">
+              <select name="parcelas" id="parcelas">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+              </select>
+              <label for="parcelas">Parcelas:</label>
+            </div>
+          </div>
+          <div class="row input-submit">
+            <button
+              class="btn waves-effect waves-light"
+              type="submit"
+              name="action"
+            >
+              Calcular
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Modal Structure -->
+    <div id="modal1" class="modal">
+      <div class="modal-content">
+        <h4>Valor Final:</h4>
+        <div class="row">
+          <h6>
+            O valor a ser cobrado do cliente é <span id="resultado"></span>
+          </h6>
         </div>
-        <div class="wrapper select-modalidade">
-          <label for="modalidade">Modalidade:</label>
-          <select name="modalidade" id="modalidade">
-            <option value="debito">Débito</option>
-            <option value="credito">Crédito</option>
-          </select>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="cliente-nome" type="text" required />
+            <label for="cliente-nome">Nome do Cliente</label>
+          </div>
         </div>
-        <div class="wrapper select-parcelas" style="display: none">
-          <label for="parcelas">Parcelas:</label>
-          <select name="parcelas" id="parcelas">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select>
+        <div class="row">
+          <a id="sharing-to-whatsapp" class="waves-effect waves-light btn"
+            ><i class="material-icons right">phone</i>Enviar Whatsapp</a
+          >
         </div>
-        <div class="wrapper input-submit">
-          <input type="submit" value="Calcular" />
-        </div>
-      </form>
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-green btn-flat"
+          >Fechar</a
+        >
+      </div>
     </div>
   </body>
 </html>
