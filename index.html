@@ -34,26 +34,32 @@
       .wrapper {
         margin: 20px 0;
       }
-      .select-wrapper * { transition: none !important; transform: none !important; }
+      /* Materialize CSS select element fix */
+      .select-wrapper * {
+        transition: none !important;
+        transform: none !important;
+      }
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        // taxas
         var taxaDebito = 0.0185,
           taxaCredito = 0.0389,
-          taxaPorParcela = 0.0199,
-          form = document.getElementById("form");
-        var selectModalidade = document.getElementById("modalidade"),
+          taxaPorParcela = 0.0199;
+
+        // elementos
+        var formCalculo = document.getElementById("form-calculo"),
+          formResultado = document.getElementById("form-resultado"),
+          selectModalidade = document.getElementById("modalidade"),
           selectParcelas = document.getElementById("parcelas"),
-          inputValor = document.getElementById("valor"),
-          sharingWhatsappButton = document.getElementById(
-            "sharing-to-whatsapp"
-          );
+          inputValor = document.getElementById("valor");
 
-        var resultado, _modalidade, _parcelas;
+        // valores
+        var _resultado, _modalidade, _parcelas, _valorOriginal;
 
-        // Materialize.css
+        // Elementos Materialize.css
         var selectElements = document.querySelectorAll("select");
-        var selectInstance = M.FormSelect.init(selectElements);
+        var selectInstances = M.FormSelect.init(selectElements);
         var modalElements = document.querySelectorAll(".modal");
         var modalInstances = M.Modal.init(modalElements, {
           onCloseEnd: function () {
@@ -69,20 +75,21 @@
             parcelas = parseInt(selectParcelas.value);
 
           if (modalidade === "debito") {
-            resultado = valor / (1 - taxaDebito.toFixed(2));
+            _resultado = valor / (1 - taxaDebito.toFixed(2));
           } else {
             if (parcelas === 1) {
-              resultado = valor / (1 - taxaCredito.toFixed(2));
+              _resultado = valor / (1 - taxaCredito.toFixed(2));
             } else {
-              resultado =
+              _resultado =
                 valor /
                 (1 - (taxaCredito + parcelas * taxaPorParcela).toFixed(2));
             }
           }
-          resultado = resultado.toFixed(2);
+          _resultado = _resultado.toFixed(2);
           _modalidade = modalidade;
           _parcelas = modalidade === "credito" ? parcelas : undefined;
-          document.getElementById("resultado").innerHTML = "R$ " + resultado;
+          _valorOriginal = valor;
+          document.getElementById("resultado").innerHTML = "R$ " + _resultado;
           resultModal.open();
         }
 
@@ -95,36 +102,60 @@
           }
         }
 
-        function redirectToShare() {
-          var nomeCliente = document.getElementById("cliente-nome").value;
-          var text =
+        function enviarWhatsapp(e) {
+          e.preventDefault();
+          var nomePaciente = document.getElementById("paciente-nome").value;
+          var data = new Date(),
+            dia = data.toLocaleDateString(),
+            horario = data.toLocaleTimeString();
+          var extraInfo = "";
+
+          if (_modalidade === "credito") {
+            if (_parcelas > 1) {
+              extraInfo = " parcelado em " + _parcelas + "x";
+            } else {
+              extraInfo = " à vista";
+            }
+          }
+
+          var texto =
             "Pagamento realizado na modalidade " +
             _modalidade +
-            " para o paciente " +
-            nomeCliente +
-            " pelo no valor de R$ " +
-            resultado;
+            extraInfo +
+            " pelo paciente " +
+            nomePaciente +
+            " no valor de R$ " +
+            _resultado +
+            " (valor original: R$ " +
+            _valorOriginal +
+            " ) " +
+            " no dia " +
+            dia +
+            " às " +
+            horario;
+
           document.location.href =
-            "https://wa.me/5511991999667?text=" + encodeURIComponent(text);
+            "https://wa.me/5511991999667?text=" + encodeURIComponent(texto);
         }
 
-        sharingWhatsappButton.addEventListener("click", redirectToShare);
+        // handlers
         selectModalidade.addEventListener("change", mostrarParcelas);
-        form.addEventListener("submit", calcular);
+        formCalculo.addEventListener("submit", calcular);
+        formResultado.addEventListener("submit", enviarWhatsapp);
       });
     </script>
   </head>
   <body>
     <nav class="blue-grey">
       <div class="nav-wrapper">
-        <a href="#" class="brand-logo left">
+        <a href="javascript:void(0);" class="brand-logo left">
           <i class="material-icons">credit_card</i>Cartão</a
         >
       </div>
     </nav>
     <div class="container">
       <div class="row">
-        <form class="col s12" id="form">
+        <form class="col s12" id="form-calculo">
           <div class="row input-valor">
             <div class="input-field col s12">
               <input
@@ -180,28 +211,37 @@
       </div>
     </div>
     <!-- Modal Structure -->
-    <div id="modal1" class="modal">
+    <div id="modal-resultado" class="modal">
       <div class="modal-content">
         <h4>Valor Final:</h4>
         <div class="row">
           <h6>
-            O valor a ser cobrado do cliente é <span id="resultado"></span>
+            O valor a ser cobrado do paciente é <strong id="resultado"></strong>
           </h6>
         </div>
-        <div class="row">
-          <div class="input-field col s12">
-            <input id="cliente-nome" type="text" required />
-            <label for="cliente-nome">Nome do Cliente</label>
+        <form class="col s12" id="form-resultado">
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="paciente-nome" type="text" required />
+              <label for="paciente-nome">Nome do Paciente</label>
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <a id="sharing-to-whatsapp" class="waves-effect waves-light btn"
-            ><i class="material-icons right">phone</i>Enviar Whatsapp</a
-          >
-        </div>
+          <div class="row center">
+            <button
+              class="btn waves-effect waves-light"
+              type="submit"
+              name="action"
+            >
+              Enviar Whatsapp
+              <i class="material-icons right">phone</i>
+            </button>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
-        <a href="#!" class="modal-close waves-effect waves-green btn-flat"
+        <a
+          href="javascript:void(0);"
+          class="modal-close waves-effect waves-green btn-flat"
           >Fechar</a
         >
       </div>
