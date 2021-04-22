@@ -2,6 +2,11 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.gstatic.com" />
+
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap"
       rel="stylesheet"
@@ -9,10 +14,6 @@
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <style>
@@ -33,6 +34,9 @@
       }
       .wrapper {
         margin: 20px 0;
+      }
+      .resultado {
+        font-weight: 700;
       }
       /* Materialize CSS select element fix */
       .select-wrapper * {
@@ -106,8 +110,8 @@
           e.preventDefault();
           var nomePaciente = document.getElementById("paciente-nome").value;
           var data = new Date(),
-            dia = data.toLocaleDateString(),
-            horario = data.toLocaleTimeString();
+            dia = data.toLocaleDateString("pt-BR"),
+            horario = data.toLocaleTimeString("pt-BR");
           var extraInfo = "";
 
           if (_modalidade === "credito") {
@@ -213,11 +217,9 @@
     <!-- Modal Structure -->
     <div id="modal-resultado" class="modal">
       <div class="modal-content">
-        <h4>Valor Final:</h4>
+        <h4><span class="resultado" id="resultado"></span></h4>
         <div class="row">
-          <h6>
-            O valor a ser cobrado do paciente é <strong id="resultado"></strong>
-          </h6>
+          <h6>Este é o valor a ser cobrado do paciente!</h6>
         </div>
         <form class="col s12" id="form-resultado">
           <div class="row">
