@@ -19,7 +19,7 @@
     <style>
       body {
         font-family: "Roboto", sans-serif;
-        background-color: #f5f5f5;
+        background-color: #fafafa;
       }
       nav {
         padding: 0 16px;
@@ -38,10 +38,13 @@
       .resultado {
         font-weight: 700;
       }
-      /* Materialize CSS select element fix */
+      /* Materialize CSS select element fixes */
       .select-wrapper * {
         transition: none !important;
         transform: none !important;
+      }
+      .modal {
+        max-height: 100% !important;
       }
     </style>
     <script>
@@ -67,10 +70,17 @@
         var modalElements = document.querySelectorAll(".modal");
         var modalInstances = M.Modal.init(modalElements, {
           onCloseEnd: function () {
-            window.location.reload();
+            document.location.reload();
           },
         });
         var resultModal = M.Modal.getInstance(modalElements[0]);
+
+        function formatToBRL(value) {
+          return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          }).format(value);
+        }
 
         function calcular(e) {
           e.preventDefault();
@@ -89,11 +99,13 @@
                 (1 - (taxaCredito + parcelas * taxaPorParcela).toFixed(2));
             }
           }
-          _resultado = _resultado.toFixed(2);
+
+          _resultado = formatToBRL(_resultado.toFixed(2));
           _modalidade = modalidade;
-          _parcelas = modalidade === "credito" ? parcelas : undefined;
-          _valorOriginal = valor;
-          document.getElementById("resultado").innerHTML = "R$ " + _resultado;
+          _parcelas = modalidade === "credito" ? parcelas : null;
+          _valorOriginal = formatToBRL(valor);
+
+          document.getElementById("resultado").innerHTML = _resultado;
           resultModal.open();
         }
 
@@ -128,11 +140,11 @@
             extraInfo +
             " pelo paciente " +
             nomePaciente +
-            " no valor de R$ " +
+            " no valor de " +
             _resultado +
-            " (valor original: R$ " +
+            " (valor original: " +
             _valorOriginal +
-            " ) " +
+            ") " +
             " no dia " +
             dia +
             " às " +
